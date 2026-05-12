@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 
 
@@ -135,6 +136,7 @@ public class FPController : NetworkBehaviour
 
 
     [Header("Components")]
+    [SerializeField] private CinemachineBrain fpCamBrain;
     [SerializeField] CinemachineCamera fpCamera;
     [SerializeField] CharacterController characterController;
     [SerializeField] Image interactPopup;
@@ -160,25 +162,22 @@ public class FPController : NetworkBehaviour
 
     private void OnValidate()
     {
-        if (characterController == null)
-        {
-            characterController = GetComponent<CharacterController>();
-        }
+        
     }
 
     private void Start()
     {
-        gameManager = FindFirstObjectByType<GameManager>();
-
-        //itemManager = GetComponent<ItemManager>();
-
-        standingHeight = characterController.height;
-
-        initialCameraPos = fpCamera.transform.localPosition;
+        
     }
 
     private void Update()
     {
+        
+        if (!IsOwner)
+        {
+            Debug.Log("Player" + OwnerClientId + " is not the owner");
+            return;
+        }
         if (MovementEnabled)
         {
             MoveUpdate();
@@ -204,7 +203,7 @@ public class FPController : NetworkBehaviour
 
 
 
-
+        
 
 
 
@@ -441,6 +440,55 @@ public class FPController : NetworkBehaviour
     //        selectedInteractable = null;
     //    }
     //}
+
+    #endregion
+
+    #region Network Specific Functions 
+
+    public override void OnNetworkSpawn()
+    {
+        //if (!IsOwner)
+        //{
+        //    fpCamBrain.gameObject.SetActive(false);
+        //    fpCamera.gameObject.SetActive(false);
+        //    return;
+        //}
+
+        if (IsOwner)
+        {
+            fpCamera.Priority += 10;
+            fpCamBrain.GetComponent<Camera>().depth += 10;
+        }
+        else
+        {
+            Destroy(fpCamBrain.gameObject.GetComponent<AudioListener>());
+
+            return;
+        }
+
+            int channelIndex = (int)OwnerClientId + 1;
+        OutputChannels channel = (OutputChannels)(1 << channelIndex);
+
+        fpCamera.OutputChannel = channel;
+        fpCamBrain.ChannelMask = channel;
+
+        if (!IsOwner) return;
+
+        gameManager = FindFirstObjectByType<GameManager>();
+
+        //itemManager = GetComponent<ItemManager>();
+
+        standingHeight = characterController.height;
+
+        initialCameraPos = fpCamera.transform.localPosition;
+
+        if (characterController == null)
+        {
+            characterController = GetComponent<CharacterController>();
+        }
+    }
+
+
 
     #endregion
 

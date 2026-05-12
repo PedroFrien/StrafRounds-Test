@@ -1,8 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
 [RequireComponent(typeof(FPController))]
-public class FPPlayer : MonoBehaviour
+public class FPPlayer : NetworkBehaviour
 {
     [Header("Components")]
     [SerializeField] FPController FPController;
@@ -12,16 +13,21 @@ public class FPPlayer : MonoBehaviour
 
     void OnMove(InputValue value)
     {
+        if (!IsOwner) return;
+        Debug.Log("Player" + OwnerClientId + " is attempting to move.");
+
         FPController.MoveInput = value.Get<Vector2>();
     }
 
     void OnLook(InputValue value)
     {
+        if (!IsOwner) return;
         FPController.LookInput = value.Get<Vector2>();
     }
 
     void OnSprint(InputValue value)
     {
+        if (!IsOwner) return;
         FPController.SprintInput = value.isPressed;
     }
 
@@ -53,12 +59,14 @@ public class FPPlayer : MonoBehaviour
     {
         if (value.isPressed)
         {
+            if (!IsOwner) return;
             FPController.TryJump();
         }
     }
 
     void OnCrouch(InputValue value)
     {
+        if (!IsOwner) return;
         FPController.CrouchInput = value.isPressed;
     }
 
@@ -112,14 +120,27 @@ public class FPPlayer : MonoBehaviour
 
     private void OnValidate()
     {
-        if (FPController == null)
-        {
-            FPController = GetComponent<FPController>();
-        }
+        
     }
 
     private void Start()
     {
+        
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (!IsOwner)
+        {
+            GetComponent<PlayerInput>().enabled = false;
+            return;
+        }
+        if (FPController == null)
+        {
+            FPController = GetComponent<FPController>();
+        }
+
+        
         Cursor.lockState = CursorLockMode.Locked;
 
         Cursor.visible = false;
