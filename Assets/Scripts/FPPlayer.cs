@@ -31,13 +31,13 @@ public class FPPlayer : NetworkBehaviour
         FPController.SprintInput = value.isPressed;
     }
 
-    //void OnItemUse(InputValue value)
-    //{
-    //    if (value.isPressed)
-    //    {
-    //        FPController.UseItem();
-    //    }
-    //}
+    void OnItemUse(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            FPController.UseItem();
+        }
+    }
 
     //void OnAbilityWheelPress(InputValue value)
     //{
@@ -79,13 +79,13 @@ public class FPPlayer : NetworkBehaviour
     //    }
     //}
 
-    //void OnInteract(InputValue value)
-    //{
-    //    if (value.isPressed)
-    //    {
-    //        FPController.TryInteract();
-    //    }
-    //}
+    void OnInteract(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            FPController.TryInteract();
+        }
+    }
 
 
     //void OnPause(InputValue value)

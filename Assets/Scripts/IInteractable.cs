@@ -7,7 +7,10 @@ public interface IInteractable
 {
 
     void ToggleSelected(bool isSelected);
+
     NetworkObject NetworkObject { get; }
 
-    public abstract void OnInteract();
+    public abstract bool Interactable { get; }
+
+    public abstract void OnInteract(GameObject interactingObject);
 }

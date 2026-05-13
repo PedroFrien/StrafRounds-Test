@@ -125,7 +125,7 @@ public class FPController : NetworkBehaviour
 
     [Header("Interacting")]
     [SerializeField] float InteractDistance = 5f;
-    //private IInteractable selectedInteractable;
+    [SerializeField] private IInteractable selectedInteractable;
 
     [Header("Coyote Time")]
     [SerializeField] float CoyoteTimeDuration = 0.15f; // Adjust this value as needed
@@ -143,7 +143,7 @@ public class FPController : NetworkBehaviour
     [SerializeField] private Sprite interactSprite;
     private GameManager gameManager;
 
-    //private ItemManager itemManager;
+    private ItemManager itemManager;
 
 
 
@@ -178,6 +178,8 @@ public class FPController : NetworkBehaviour
             Debug.Log("Player" + OwnerClientId + " is not the owner");
             return;
         }
+
+        Debug.Log(selectedInteractable);
         if (MovementEnabled)
         {
             MoveUpdate();
@@ -189,7 +191,7 @@ public class FPController : NetworkBehaviour
 
         if (LookEnabled) LookUpdate();
 
-        //CheckForInteract();
+        CheckForInteract();
 
         // Update coyote time counter
         if (IsGrounded)
@@ -218,10 +220,10 @@ public class FPController : NetworkBehaviour
 
 
 
-    //public void UseItem()
-    //{
-    //    itemManager.UseItem();
-    //}
+    public void UseItem()
+    {
+        itemManager.UseItem();
+    }
 
 
 
@@ -373,15 +375,15 @@ public class FPController : NetworkBehaviour
     //    ItemManager.ReloadWeapon();
     //}
 
-    //public void TryInteract()
-    //{
+    public void TryInteract()
+    {
+        Debug.Log("trying to interact");
+        if (selectedInteractable != null)
+        {
 
-    //    if (selectedInteractable != null)
-    //    {
-
-    //        selectedInteractable.OnInteract();
-    //    }
-    //}
+            selectedInteractable.OnInteract(gameObject);
+        }
+    }
 
     //public void Item1()
     //{
@@ -413,33 +415,33 @@ public class FPController : NetworkBehaviour
 
     #region Interact
 
-    //private void CheckForInteract()
-    //{
-    //    RaycastHit hit;
+    private void CheckForInteract()
+    {
+        RaycastHit hit;
 
-    //    if (Physics.Raycast(fpCamera.transform.position, fpCamera.transform.forward, out hit, InteractDistance, pickup))
-    //    {
-    //        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-    //        if (interactable != null && interactable.Interactable == true)
-    //        {
-    //            interactPopup.gameObject.SetActive(true);
+        if (Physics.Raycast(fpCamera.transform.position, fpCamera.transform.forward, out hit, InteractDistance, pickup))
+        {
+            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+            if (interactable != null && interactable.Interactable == true)
+            {
+                interactPopup.gameObject.SetActive(true);
 
 
 
-    //            selectedInteractable = hit.collider.GetComponent<IInteractable>();
-    //        }
-    //        else
-    //        {
-    //            interactPopup.gameObject.SetActive(false);
-    //            selectedInteractable = null;
-    //        }
-    //    }
-    //    else
-    //    {
-    //        interactPopup.gameObject.SetActive(false);
-    //        selectedInteractable = null;
-    //    }
-    //}
+                selectedInteractable = hit.collider.GetComponent<IInteractable>();
+            }
+            else
+            {
+                interactPopup.gameObject.SetActive(false);
+                selectedInteractable = null;
+            }
+        }
+        else
+        {
+            interactPopup.gameObject.SetActive(false);
+            selectedInteractable = null;
+        }
+    }
 
     #endregion
 
@@ -486,6 +488,8 @@ public class FPController : NetworkBehaviour
         {
             characterController = GetComponent<CharacterController>();
         }
+
+        interactPopup = GameObject.Find("InteractPopup").GetComponent<Image>();
     }
 
 
