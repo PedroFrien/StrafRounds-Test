@@ -380,8 +380,11 @@ public class FPController : NetworkBehaviour
         Debug.Log("trying to interact");
         if (selectedInteractable != null)
         {
-
             selectedInteractable.OnInteract(gameObject);
+        }
+        else if (itemManager.equippedItem != null)
+        {
+            itemManager.DropItem();
         }
     }
 
@@ -478,7 +481,7 @@ public class FPController : NetworkBehaviour
 
         gameManager = FindFirstObjectByType<GameManager>();
 
-        //itemManager = GetComponent<ItemManager>();
+        itemManager = GetComponent<ItemManager>();
 
         standingHeight = characterController.height;
 

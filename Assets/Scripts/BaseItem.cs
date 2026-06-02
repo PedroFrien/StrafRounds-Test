@@ -21,7 +21,7 @@ public abstract class BaseItem : NetworkBehaviour, IInteractable
 
         if (itemManager != null)
         {
-            Pickup(itemManager);
+            PickupThis(itemManager);
         }
         else
         {
@@ -34,7 +34,7 @@ public abstract class BaseItem : NetworkBehaviour, IInteractable
         
         
     }
-     
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -43,7 +43,7 @@ public abstract class BaseItem : NetworkBehaviour, IInteractable
     }
 
     public override void OnNetworkDespawn()
-    {   
+    {
         m_isAvailable.OnValueChanged -= OnAvailabilityChanged;
         base.OnNetworkDespawn();
     }
@@ -56,13 +56,14 @@ public abstract class BaseItem : NetworkBehaviour, IInteractable
     protected abstract void ApplyAvailabilityState(bool newValue);
     
 
-    public void Pickup(ItemManager itemManager)
+    public void PickupThis(ItemManager itemManager)
     {
         if (IsServer == false)
         {
+            Debug.Log("Not the server");
             return;
         }
-        m_isAvailable.Value = false;
+        //m_isAvailable.Value = false;
 
         itemManager.EquipItem(this);
 

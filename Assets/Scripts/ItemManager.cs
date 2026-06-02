@@ -5,7 +5,11 @@ public class ItemManager : NetworkBehaviour
 {
     [SerializeField] private Transform holdPos;
 
-    [SerializeField] private BaseItem equippedItem;
+    private Rigidbody itemRb;
+
+
+
+    public BaseItem equippedItem;
 
 
     public void EquipItem(BaseItem item)
@@ -16,12 +20,25 @@ public class ItemManager : NetworkBehaviour
         }
 
         equippedItem = item;
+        itemRb = equippedItem.GetComponent<Rigidbody>();
+        itemRb.isKinematic = true;
+        
 
-        item.transform.parent = holdPos;
-        item.transform.position = item.posOffset;
-        item.transform.rotation = item.rotOffset;
+
 
         
+    }
+
+    private void LateUpdate()
+    {
+        Debug.Log("Player" + OwnerClientId + " has an ItemManager script.");
+
+
+        if (holdPos != null && equippedItem != null)
+        {
+            equippedItem.transform.position = holdPos.position + equippedItem.posOffset;
+            equippedItem.transform.rotation = holdPos.rotation * equippedItem.rotOffset;
+        }
     }
 
     public void UseItem()
@@ -32,7 +49,9 @@ public class ItemManager : NetworkBehaviour
 
     public void DropItem()
     {
-        equippedItem.transform.parent = null;
+        itemRb.isKinematic = false;
+        itemRb = null;
         equippedItem = null;
+        
     }
 }
