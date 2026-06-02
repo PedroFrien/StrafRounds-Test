@@ -5,7 +5,7 @@ using UnityEngine;
 
 public abstract class BaseItem : NetworkBehaviour, IInteractable
 {
-    protected NetworkVariable<bool> m_isAvailable = new(true, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<bool> m_isAvailable = new(true, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     //public bool CanBePickedUp => m_isAvailable.Value;
 
@@ -58,14 +58,11 @@ public abstract class BaseItem : NetworkBehaviour, IInteractable
 
     public void PickupThis(ItemManager itemManager)
     {
-        if (IsServer == false)
-        {
-            Debug.Log("Not the server");
-            return;
-        }
-        //m_isAvailable.Value = false;
+        Debug.Log("PickupThis called");
+        if (!m_isAvailable.Value) return;
+        Debug.Log("PickupThis running");
 
-        itemManager.EquipItem(this);
+        itemManager.EquipItemServerRpc(NetworkObjectId);
 
     }
     public abstract void Use();

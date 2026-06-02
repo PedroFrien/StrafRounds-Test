@@ -384,7 +384,7 @@ public class FPController : NetworkBehaviour
         }
         else if (itemManager.equippedItem != null)
         {
-            itemManager.DropItem();
+            itemManager.TryDrop();
         }
     }
 
