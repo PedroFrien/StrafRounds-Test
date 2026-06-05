@@ -12,7 +12,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 
 
 [RequireComponent(typeof(CharacterController))]
-public class FPController : NetworkBehaviour
+public class FPController : BaseCharacter
 {
 
 
@@ -370,10 +370,10 @@ public class FPController : NetworkBehaviour
         fpCamera.Lens.FieldOfView = Mathf.Lerp(fpCamera.Lens.FieldOfView, targetFOV, CameraFOVSmoothing * Time.deltaTime);
     }
 
-    //public void Reload()
-    //{
-    //    ItemManager.ReloadWeapon();
-    //}
+    public void Reload()
+    {
+        itemManager.ReloadWeapon();
+    }
 
     public void TryInteract()
     {

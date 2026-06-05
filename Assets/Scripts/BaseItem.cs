@@ -13,7 +13,7 @@ public abstract class BaseItem : NetworkBehaviour, IInteractable
 
 
     public Vector3 posOffset;
-    public Quaternion rotOffset;
+    public Quaternion rotOffset = Quaternion.identity;
 
     public void OnInteract(GameObject interactingObject)
     {
@@ -35,25 +35,25 @@ public abstract class BaseItem : NetworkBehaviour, IInteractable
         
     }
 
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-        m_isAvailable.OnValueChanged += OnAvailabilityChanged;
-        ApplyAvailabilityState(m_isAvailable.Value);
-    }
+    //public override void OnNetworkSpawn()
+    //{
+    //    base.OnNetworkSpawn();
+    //    m_isAvailable.OnValueChanged += OnAvailabilityChanged;
+    //    ApplyAvailabilityState(m_isAvailable.Value);
+    //}
 
-    public override void OnNetworkDespawn()
-    {
-        m_isAvailable.OnValueChanged -= OnAvailabilityChanged;
-        base.OnNetworkDespawn();
-    }
+    //public override void OnNetworkDespawn()
+    //{
+    //    m_isAvailable.OnValueChanged -= OnAvailabilityChanged;
+    //    base.OnNetworkDespawn();
+    //}
 
-    private void OnAvailabilityChanged(bool previousValue, bool newValue)
-    {
-        ApplyAvailabilityState(newValue);
-    }
+    //private void OnAvailabilityChanged(bool previousValue, bool newValue)
+    //{
+    //    ApplyAvailabilityState(newValue);
+    //}
 
-    protected abstract void ApplyAvailabilityState(bool newValue);
+    //protected abstract void ApplyAvailabilityState(bool newValue);
     
 
     public void PickupThis(ItemManager itemManager)
@@ -66,4 +66,5 @@ public abstract class BaseItem : NetworkBehaviour, IInteractable
 
     }
     public abstract void Use();
+  
 }

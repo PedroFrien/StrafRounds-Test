@@ -1,9 +1,13 @@
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class ItemManager : NetworkBehaviour
 {
-    [SerializeField] private Transform holdPos;
+    //[SerializeField] private NetworkObject holdPosPrefab;
+    //private NetworkObject holdPos;
+    [SerializeField] private Transform holdPosRef;
+    [SerializeField] private Transform playerCamera;
     [SerializeField] private NetworkObject player;
 
     private Rigidbody itemRb;
@@ -13,7 +17,14 @@ public class ItemManager : NetworkBehaviour
     public BaseItem equippedItem;
 
 
-    
+
+
+    //private void Awake()
+    //{
+    //    holdPos = Instantiate(holdPosPrefab, holdPosRef.position, holdPosRef.rotation);
+
+    //    holdPos.TrySetParent(playerCamera);
+    //}
 
     [Rpc(SendTo.Server)]
     public void EquipItemServerRpc(ulong networkObjectId)
@@ -30,6 +41,9 @@ public class ItemManager : NetworkBehaviour
 
         target.TrySetParent(player);
 
+        BaseGun gun = item.GetComponent<BaseGun>();
+        if (gun != null) gun.FindReferences();
+
         EquipItemClientRpc(target.NetworkObjectId);
 
         
@@ -44,6 +58,8 @@ public class ItemManager : NetworkBehaviour
         // ALL clients suppress physics so NetworkTransform can sync cleanly
         var rb = target.GetComponent<Rigidbody>();
         if (rb != null) rb.isKinematic = true;
+        var col = target.GetComponent<Collider>();
+        if (col != null) col.enabled = false;
 
         // Only the owner does local attach logic
         if (!IsOwner) return;
@@ -56,12 +72,12 @@ public class ItemManager : NetworkBehaviour
         {
             DropItem();
         }
-
+            
         equippedItem = item;
         itemRb = equippedItem.GetComponent<Rigidbody>();
         itemRb.isKinematic = true;
-        equippedItem.transform.position = holdPos.position + equippedItem.posOffset;
-        equippedItem.transform.rotation = holdPos.rotation * equippedItem.rotOffset;
+        //equippedItem.transform.position = holdPos.transform.position + equippedItem.posOffset;
+        //equippedItem.transform.rotation = playerCamera.transform.rotation * equippedItem.rotOffset;
     }
 
     [Rpc(SendTo.Server)]
@@ -81,8 +97,8 @@ public class ItemManager : NetworkBehaviour
         }
 
         
-
         DropItemClientRPC(networkObjectId);
+
 
 
     }
@@ -95,6 +111,8 @@ public class ItemManager : NetworkBehaviour
         {
             var rb = target.GetComponent<Rigidbody>();
             if (rb != null) rb.isKinematic = false;
+            var col = target.GetComponent<Collider>();
+            if (col != null) col.enabled = true;
         }
 
         if (!IsOwner) return;
@@ -130,22 +148,41 @@ public class ItemManager : NetworkBehaviour
         Debug.Log("Player" + OwnerClientId + " has an ItemManager script.");
 
         if (!IsOwner) return;
-       
-            
-        
 
 
-        //if (holdPos != null && equippedItem != null && equippedItem.IsOwner)
-        //{
-        //    equippedItem.transform.position = holdPos.position + equippedItem.posOffset;
-        //    equippedItem.transform.rotation = holdPos.rotation * equippedItem.rotOffset;
-        //}
+
+
+
+        if (equippedItem != null && equippedItem.IsOwner)
+        {
+            equippedItem.transform.position = holdPosRef.position + equippedItem.posOffset;
+            equippedItem.transform.rotation = holdPosRef.rotation * equippedItem.rotOffset;
+        }
     }
 
+
+    [Rpc(SendTo.Server)]
+    private void RequestUseItemServerRpc(ulong networkObjectId)
+    {
+        if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject target)) return;
+        if (!target.TryGetComponent(out BaseItem item)) return;
+
+        item.Use();
+    }
     public void UseItem()
     {
         if (equippedItem != null && IsOwner)
-        equippedItem.Use();
+            RequestUseItemServerRpc(equippedItem.NetworkObjectId);
+        
+    }
+
+    public void ReloadWeapon()
+    {
+        BaseGun gun = equippedItem.GetComponent<BaseGun>();
+        if (gun != null)
+        {
+            gun.StartReload();
+        }
     }
 
     

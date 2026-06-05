@@ -5,13 +5,13 @@ public class NewMonoBehaviourScript : BaseItem
 {
     private ComponentController m_componentController;
 
-    protected override void ApplyAvailabilityState(bool newValue)
-    {
-        //if(IsServer)
-        //{
-        //    m_componentController.SetEnabled(newValue);
-        //}
-    }
+    //protected override void ApplyAvailabilityState(bool newValue)
+    //{
+    //    //if(IsServer)
+    //    //{
+    //    //    m_componentController.SetEnabled(newValue);
+    //    //}
+    //}
 
     public override void Use()
     {

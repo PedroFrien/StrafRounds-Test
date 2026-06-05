@@ -35,6 +35,7 @@ public class FPPlayer : NetworkBehaviour
     {
         if (value.isPressed)
         {
+            Debug.Log("ItemUseCalled");
             FPController.UseItem();
         }
     }
@@ -70,14 +71,14 @@ public class FPPlayer : NetworkBehaviour
         FPController.CrouchInput = value.isPressed;
     }
 
-    //void OnReload(InputValue value)
-    //{
-    //    if (value.isPressed)
-    //    {
-    //        Debug.Log("Trying to Reload");
-    //        FPController.Reload();
-    //    }
-    //}
+    void OnReload(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            Debug.Log("Trying to Reload");
+            FPController.Reload();
+        }
+    }
 
     void OnInteract(InputValue value)
     {
