@@ -9,7 +9,9 @@ public abstract class BaseGun : BaseWeapon
     public Transform firePoint;
     public int magSize;
     public int reserveAmmo;
-    public int currentAmmo;
+
+    [SerializeField] protected NetworkVariable<int> currentAmmo = new(6, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+ 
     public float bulletDamage;
     public float bulletSpeed;
     public float attackSpeed;
@@ -29,62 +31,55 @@ public abstract class BaseGun : BaseWeapon
 
 
 
-    private void Awake()
+    public override void OnNetworkSpawn()
     {
-        currentAmmo = magSize;
+        if (IsServer) // Server initializes the value once
+        {
+            currentAmmo.Value = magSize;
+            canAttack = currentAmmo.Value > 0;
+        }
+    }
+
+    public override void OnPickup()
+    {
+        //if (currentAmmo.Value > 0)
+        //{
+        //    canAttack = true;
+        //}
     }
     public void FindReferences()
     {
         playerCamera = transform.parent.Find("PlayerCamera").GetComponent<Camera>();
     }
-    public override void Use()
+    // BaseGun
+    public override void Use(Vector3 aimOrigin, Vector3 aimDirection)
     {
         if (!IsServer) return;
-        if (!canAttack) return;
-
-        if (currentAmmo <= 0)
-        {
-            Debug.Log("Out of ammo, not able to use");
-            return;
-        }
-
-        Debug.Log("Using Gun");
+        if (!canAttack || currentAmmo.Value <= 0) return;
 
         canAttack = false;
 
-
-
-        Ray ray = playerCamera.ScreenPointToRay(ScreenCenter());
+        Ray ray = new Ray(aimOrigin, aimDirection);
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit, range, hitLayer))
         {
             BaseCharacter character = hit.collider.GetComponent<BaseCharacter>();
-            if (character != null)
-            {
-                character.TakeDamage(bulletDamage);
-            }
-
+            if (character != null) character.TakeDamage(bulletDamage);
             SpawnTrail(hit.point);
-
-            //if (hit.collider.tag == "Environment") SpawnDecal(hit);
-
         }
         else
         {
             SpawnTrail(ray.GetPoint(range));
         }
 
-
-
-
         DecreaseAmmo();
-
         Invoke("ResetAttack", attackSpeed);
     }
 
     public virtual void StartReload()
     {
+        if (!IsServer) return;
         StartCoroutine(Reload());
     }
 
@@ -94,7 +89,7 @@ public abstract class BaseGun : BaseWeapon
     }
     public IEnumerator Reload()
     {
-        if (currentAmmo >= magSize || reserveAmmo <= 0 || reloading)
+        if (currentAmmo.Value >= magSize || reserveAmmo <= 0 || reloading)
         {
             yield break;
         }
@@ -110,15 +105,15 @@ public abstract class BaseGun : BaseWeapon
 
         yield return new WaitForSeconds(reloadSpeed);
 
-        int ammoNeeded = magSize - currentAmmo;
+        int ammoNeeded = magSize - currentAmmo.Value;
         if (reserveAmmo >= ammoNeeded)
         {
             reserveAmmo -= ammoNeeded;
-            currentAmmo = magSize;
+            currentAmmo.Value = magSize;
         }
         else
         {
-            currentAmmo += reserveAmmo;
+            currentAmmo.Value += reserveAmmo;
             reserveAmmo = 0;
         }
 
@@ -129,21 +124,15 @@ public abstract class BaseGun : BaseWeapon
 
     public void DecreaseAmmo()
     {
-        currentAmmo -= 1;
-        if (currentAmmo <= 0)
+        currentAmmo.Value -= 1;
+        if (currentAmmo.Value <= 0)
         {
             canAttack = false;
         }
     }
 
 
-    public Vector3 ScreenCenter()
-    {
-        float centerX = Screen.width / 2f;
-        float centerY = Screen.height / 2f;
-        Vector3 screenCenter = new Vector3(centerX, centerY, 0);
-        return screenCenter;
-    }
+    
 
     // Called locally, then tells all clients to spawn the trail
     public void SpawnTrail(Vector3 hitPoint)

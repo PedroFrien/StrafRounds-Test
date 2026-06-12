@@ -7,7 +7,7 @@ public class ItemManager : NetworkBehaviour
     //[SerializeField] private NetworkObject holdPosPrefab;
     //private NetworkObject holdPos;
     [SerializeField] private Transform holdPosRef;
-    [SerializeField] private Transform playerCamera;
+    [SerializeField] private Camera playerCam;
     [SerializeField] private NetworkObject player;
 
     private Rigidbody itemRb;
@@ -76,6 +76,8 @@ public class ItemManager : NetworkBehaviour
         equippedItem = item;
         itemRb = equippedItem.GetComponent<Rigidbody>();
         itemRb.isKinematic = true;
+
+        item.OnPickup();
         //equippedItem.transform.position = holdPos.transform.position + equippedItem.posOffset;
         //equippedItem.transform.rotation = playerCamera.transform.rotation * equippedItem.rotOffset;
     }
@@ -162,28 +164,42 @@ public class ItemManager : NetworkBehaviour
 
 
     [Rpc(SendTo.Server)]
-    private void RequestUseItemServerRpc(ulong networkObjectId)
+    private void RequestUseItemServerRpc(ulong networkObjectId, Vector3 aimOrigin, Vector3 aimDirection)
     {
         if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject target)) return;
         if (!target.TryGetComponent(out BaseItem item)) return;
 
-        item.Use();
+        item.Use(aimOrigin, aimDirection);
     }
+
     public void UseItem()
     {
         if (equippedItem != null && IsOwner)
-            RequestUseItemServerRpc(equippedItem.NetworkObjectId);
-        
-    }
+        {
 
-    public void ReloadWeapon()
+            Ray ray = playerCam.ScreenPointToRay(ScreenCenter());
+            RequestUseItemServerRpc(equippedItem.NetworkObjectId, ray.origin, ray.direction);
+        }
+    }
+    [Rpc(SendTo.Server)]
+    public void RequestReloadServerRPC(ulong networkObjectId)
     {
-        BaseGun gun = equippedItem.GetComponent<BaseGun>();
+        if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject target)) return;
+
+        BaseGun gun = target.GetComponent<BaseGun>();
         if (gun != null)
         {
             gun.StartReload();
         }
     }
 
-    
+    public Vector3 ScreenCenter()
+    {
+        float centerX = Screen.width / 2f;
+        float centerY = Screen.height / 2f;
+        Vector3 screenCenter = new Vector3(centerX, centerY, 0);
+        return screenCenter;
+    }
+
+
 }

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Unity.Netcode;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
+using TMPro;
 
 
 
@@ -145,7 +146,9 @@ public class FPController : BaseCharacter
 
     private ItemManager itemManager;
 
+    private FlashRed flashRed;
 
+    private TMP_Text healthText;
 
 
 
@@ -160,15 +163,7 @@ public class FPController : BaseCharacter
 
     #region Unity Methods
 
-    private void OnValidate()
-    {
-        
-    }
-
-    private void Start()
-    {
-        
-    }
+    
 
     private void Update()
     {
@@ -213,7 +208,7 @@ public class FPController : BaseCharacter
 
 
 
-
+    
     #endregion
 
     #region Controller Methods
@@ -372,7 +367,7 @@ public class FPController : BaseCharacter
 
     public void Reload()
     {
-        itemManager.ReloadWeapon();
+        itemManager.RequestReloadServerRPC(itemManager.equippedItem.NetworkObjectId);
     }
 
     public void TryInteract()
@@ -386,6 +381,16 @@ public class FPController : BaseCharacter
         {
             itemManager.TryDrop();
         }
+    }
+
+    public override void TakeDamage(float damage)
+    {
+   
+        base.TakeDamage(damage);
+        flashRed.FlashClientRpc();
+
+        
+        
     }
 
     //public void Item1()
@@ -451,14 +456,8 @@ public class FPController : BaseCharacter
     #region Network Specific Functions 
 
     public override void OnNetworkSpawn()
-    {
-        //if (!IsOwner)
-        //{
-        //    fpCamBrain.gameObject.SetActive(false);
-        //    fpCamera.gameObject.SetActive(false);
-        //    return;
-        //}
-
+    {   
+        flashRed = GetComponent<FlashRed>();
         if (IsOwner)
         {
             fpCamera.Priority += 10;
@@ -493,6 +492,18 @@ public class FPController : BaseCharacter
         }
 
         interactPopup = GameObject.Find("InteractPopup").GetComponent<Image>();
+        healthText = GameObject.Find("Health").GetComponent<TMP_Text>();
+        currentHealth.OnValueChanged += (oldVal, newVal) =>
+        {
+            if (IsOwner) healthText.text = newVal.ToString();
+        };
+
+        if (IsServer)
+        {
+            currentHealth.Value = maxHealth.Value;
+        }
+        healthText.text = currentHealth.Value.ToString();
+
     }
 
 

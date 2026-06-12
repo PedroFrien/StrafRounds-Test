@@ -13,7 +13,7 @@ public class NewMonoBehaviourScript : BaseItem
     //    //}
     //}
 
-    public override void Use()
+    public override void Use(Vector3 aimOrigin, Vector3 aimDirection)
     {
         Debug.Log("Using Test Weapon");
     }

@@ -65,6 +65,11 @@ public abstract class BaseItem : NetworkBehaviour, IInteractable
         itemManager.EquipItemServerRpc(NetworkObjectId);
 
     }
-    public abstract void Use();
+    public abstract void Use(Vector3 aimOrigin, Vector3 aimDirection);
+
+    public virtual void OnPickup()
+    {
+
+    }
   
 }
