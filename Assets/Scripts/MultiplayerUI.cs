@@ -9,10 +9,10 @@ public class MultiplayerUI : MonoBehaviour
     //[SerializeField] 
     //private UIDocument m_uiDocument;
     [SerializeField]
-    private Button m_hostButton, m_clientButton, m_disconnectButton;
-    
+    private Button m_hostButton, m_clientButton, m_disconnectButton, m_startButton;
 
-    public event Action OnStartHost, OnStartClient, OnDisconnectClient;
+
+    public event Action OnStartHost, OnStartClient, OnDisconnectClient, OnStartGame;
 
     private void Awake()
     {
@@ -26,6 +26,7 @@ public class MultiplayerUI : MonoBehaviour
         m_hostButton.onClick.AddListener(() => OnStartHost?.Invoke());
         m_clientButton.onClick.AddListener(() => OnStartClient?.Invoke());
         m_disconnectButton.onClick.AddListener(() => OnDisconnectClient?.Invoke());
+        m_startButton.onClick.AddListener(() => OnStartGame.Invoke());
     }
 
     public void DisableButtons()
@@ -33,6 +34,7 @@ public class MultiplayerUI : MonoBehaviour
         m_hostButton.interactable = false;
         m_clientButton.interactable = false;
         m_disconnectButton.interactable = true;
+        m_startButton.interactable = true;
     }
 
     public void EnableButtons()
@@ -40,6 +42,7 @@ public class MultiplayerUI : MonoBehaviour
         m_hostButton.interactable = true;
         m_clientButton.interactable = true;
         m_disconnectButton.interactable = false;
+        m_startButton.interactable = false;
     }
 
 

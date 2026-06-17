@@ -7,6 +7,7 @@ using Unity.Netcode;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
 using TMPro;
+using System;
 
 
 
@@ -142,6 +143,11 @@ public class FPController : BaseCharacter
     [SerializeField] CharacterController characterController;
     [SerializeField] Image interactPopup;
     [SerializeField] private Sprite interactSprite;
+
+
+
+
+    [Header("Network Stuff")]
     private GameManager gameManager;
 
     private ItemManager itemManager;
@@ -149,6 +155,8 @@ public class FPController : BaseCharacter
     private FlashRed flashRed;
 
     private TMP_Text healthText;
+
+    
 
 
 

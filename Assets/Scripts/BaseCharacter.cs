@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEditor;
 using UnityEngine;
@@ -6,6 +7,12 @@ public abstract class BaseCharacter : NetworkBehaviour
 {
     [SerializeField] protected NetworkVariable<float> currentHealth = new(100, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     [SerializeField] protected NetworkVariable<float> maxHealth = new(100, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    public event Action OnCharacterDeath;
+
+
+
+
     public virtual void TakeDamage(float damage)
     {
         currentHealth.Value -= damage;
@@ -19,6 +26,8 @@ public abstract class BaseCharacter : NetworkBehaviour
 
     public virtual void Die()
     {
+        OnCharacterDeath.Invoke();
+
         Destroy(gameObject);
     }
 
