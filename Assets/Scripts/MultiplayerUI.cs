@@ -26,7 +26,7 @@ public class MultiplayerUI : MonoBehaviour
         m_hostButton.onClick.AddListener(() => OnStartHost?.Invoke());
         m_clientButton.onClick.AddListener(() => OnStartClient?.Invoke());
         m_disconnectButton.onClick.AddListener(() => OnDisconnectClient?.Invoke());
-        m_startButton.onClick.AddListener(() => OnStartGame.Invoke());
+        m_startButton.onClick.AddListener(() => OnStartGame?.Invoke());
     }
 
     public void DisableButtons()
