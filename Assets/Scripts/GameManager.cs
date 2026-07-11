@@ -50,6 +50,11 @@ public class GameManager : NetworkBehaviour
         RefreshSpawnPoints();
     }
 
+    private void Update()
+    {
+        Debug.Log(m_activePlayers.Count);
+    }
+
     private void RefreshSpawnPoints()
     {
         GameObject[] taggedSpawnPoints = GameObject.FindGameObjectsWithTag("SpawnPoint");
@@ -167,6 +172,8 @@ public class GameManager : NetworkBehaviour
 
     private void PlayerVictory(ulong winningClient)
     {
+
+        m_activePlayers.Clear();
         LoadScene(SceneManager.GetActiveScene().name);
     }
 
