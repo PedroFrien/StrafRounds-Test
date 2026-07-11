@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -9,6 +10,8 @@ public class GameManager : NetworkBehaviour
 {
     [SerializeField]
     private MultiplayerUI m_multiplayerUI;
+    [SerializeField]
+    private PlayerUI m_playerUI;
     [SerializeField]
     private GameObject m_playerPrefab;
 
@@ -68,6 +71,7 @@ public class GameManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+
         if (IsServer == false)
             return;
         NetworkManager.OnClientConnectedCallback += AddClient;
@@ -103,6 +107,8 @@ public class GameManager : NetworkBehaviour
             SpawnPlayers();
         }
     }
+
+
 
     private void AddClient(ulong clientID)
     {
@@ -158,6 +164,8 @@ public class GameManager : NetworkBehaviour
             BaseCharacter spawnedPlayer = player.GetComponent<BaseCharacter>();
             m_activePlayers.Add(spawnedPlayer);
             spawnedPlayer.OnCharacterDeath += () => CheckForWin(spawnedPlayer);
+
+           
         }
     }
 
@@ -172,10 +180,29 @@ public class GameManager : NetworkBehaviour
 
     private void PlayerVictory(ulong winningClient)
     {
+        StartCoroutine(ShowVictory(winningClient));
+     
+    }
 
+    private IEnumerator ShowVictory(ulong winningClient)
+    {
+        ShowVictoryClientRpc(winningClient);
+        yield return new WaitForSeconds(3);
         m_activePlayers.Clear();
         LoadScene(SceneManager.GetActiveScene().name);
     }
+
+    [ClientRpc]
+    private void ShowVictoryClientRpc(ulong winningClientId)
+    {
+        var localPlayerObject = NetworkManager.Singleton.LocalClient?.PlayerObject;
+        if (localPlayerObject != null)
+        {
+            FPController controller = localPlayerObject.GetComponent<FPController>();
+            controller?.WinScreen(winningClientId);
+        }
+    }
+
 
     private void LoadScene(string sceneName)
     {

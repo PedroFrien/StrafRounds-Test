@@ -156,8 +156,10 @@ public class FPController : BaseCharacter
 
     private TMP_Text healthText;
 
-    
+    private PlayerUI playerUI;
 
+
+    private bool Paused = false;
 
 
 
@@ -512,6 +514,32 @@ public class FPController : BaseCharacter
         }
         healthText.text = currentHealth.Value.ToString();
 
+        playerUI = FindFirstObjectByType<PlayerUI>();
+    }
+
+    public void WinScreen(ulong winningClient)
+    {
+        playerUI.RoundWinScreen(winningClient);
+    }
+
+    public void Pause()
+    {
+        if (Paused)
+        {
+            Paused = false;
+            Cursor.lockState = CursorLockMode.None;
+            LookEnabled = true;
+            MovementEnabled = true;
+
+        }
+        else if (!Paused)
+        {
+            Paused = true;
+            Cursor.lockState = CursorLockMode.Locked;
+            LookEnabled = false;
+            MovementEnabled = false;
+
+        }
     }
 
 

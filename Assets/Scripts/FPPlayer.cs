@@ -89,13 +89,13 @@ public class FPPlayer : NetworkBehaviour
     }
 
 
-    //void OnPause(InputValue value)
-    //{
-    //    if (value.isPressed)
-    //    {
-    //        FPController.Pause();
-    //    }
-    //}
+    void OnPause(InputValue value)
+    {
+        if (value.isPressed)
+        {
+            FPController.Pause();
+        }
+    }
 
 
     //void OnWeapon1(InputValue value)
