@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,7 +17,7 @@ public class GameManager : NetworkBehaviour
     private GameObject m_playerPrefab;
 
     private List<ulong> m_joinedClients = new List<ulong>();
-    private List<BaseCharacter> m_activePlayers = new List<BaseCharacter>();
+    private List<FPController> m_activePlayers = new List<FPController>();
 
     private List<Transform> spawnPoints = new List<Transform>();
     private List<Transform> availableSpawnPoints;
@@ -25,6 +26,28 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private bool m_inMatch = false;
 
     public static GameManager Instance { get; private set; }
+
+    [SerializeField] private List<string> availableMaps;
+
+    public class PlayerStats
+    {
+        public RoundWinIndicator roundWinIndicator;
+        public int roundWins;
+        public int matchWins;
+
+        public PlayerStats()
+        {
+            roundWinIndicator = null;
+            roundWins = 0;
+            matchWins = 0;
+        }
+    }
+
+    private Dictionary<ulong, PlayerStats> clientStats = new Dictionary<ulong, PlayerStats>();
+
+    
+    [SerializeField] private RoundWinIndicator roundWinIndicator;
+    [SerializeField] private Transform uiContainer;
 
 
     private void Awake()
@@ -110,11 +133,12 @@ public class GameManager : NetworkBehaviour
 
 
 
-    private void AddClient(ulong clientID)
+    private void AddClient(ulong clientId)
     {
-        if (!m_joinedClients.Contains(clientID))
+        if (!m_joinedClients.Contains(clientId))
         {
-            m_joinedClients.Add(clientID);
+            m_joinedClients.Add(clientId);
+            clientStats[clientId] = new PlayerStats();
         }
     }
 
@@ -161,46 +185,111 @@ public class GameManager : NetworkBehaviour
             GameObject player = Instantiate(m_playerPrefab, spawnPoint.position, Quaternion.identity);
             player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientID, true);
 
-            BaseCharacter spawnedPlayer = player.GetComponent<BaseCharacter>();
+            FPController spawnedPlayer = player.GetComponent<FPController>();
             m_activePlayers.Add(spawnedPlayer);
             spawnedPlayer.OnCharacterDeath += () => CheckForWin(spawnedPlayer);
 
-           
+            CreateRoundUIClientRpc(m_activePlayers.Select(p => p.OwnerClientId).ToArray());
         }
     }
 
-    private void CheckForWin(BaseCharacter deadPlayer)
+    [ClientRpc]
+    private void CreateRoundUIClientRpc(ulong[] clientIds)
+    {
+        uiContainer = GameObject.Find("UIContainer").transform;
+        m_playerUI = FindFirstObjectByType<PlayerUI>();
+
+        foreach (var id in clientIds)
+        {
+            if (!clientStats.TryGetValue(id, out var stats))
+            {
+                // Shouldn't normally happen, but guard against it rather than throwing.
+                stats = new PlayerStats();
+                clientStats[id] = stats;
+            }
+
+            if (stats.roundWinIndicator != null)
+                continue;
+
+            stats.roundWinIndicator = Instantiate(roundWinIndicator, uiContainer);
+        }
+    }
+
+    private void CheckForWin(FPController deadPlayer)
     {
         m_activePlayers.Remove(deadPlayer);
         if (m_activePlayers.Count == 1)
         {
-            PlayerVictory(deadPlayer.OwnerClientId);
+            PlayerVictory(m_activePlayers[0].OwnerClientId);
         }
     }
 
     private void PlayerVictory(ulong winningClient)
     {
-        StartCoroutine(ShowVictory(winningClient));
-     
+        foreach (var kvp in clientStats)
+        {
+            if (kvp.Key == winningClient)
+            {
+                clientStats[kvp.Key].roundWins++;
+                if (clientStats[kvp.Key].roundWins >= 2)
+                {
+                    clientStats[kvp.Key].matchWins++;
+                    StartCoroutine(ShowVictory(winningClient, true));
+                }
+            }
+        }
+
+        StartCoroutine(ShowVictory(winningClient, false));
+
+
     }
 
-    private IEnumerator ShowVictory(ulong winningClient)
+    private IEnumerator ShowVictory(ulong winningClient, bool newMap)
     {
         ShowVictoryClientRpc(winningClient);
         yield return new WaitForSeconds(3);
-        m_activePlayers.Clear();
+        if (newMap)
+        {
+            NewMap();
+        }
+        else
+        {
+            RestartMap();
+        }
+    }
+
+    public void RestartMap()
+    {
+        Cleanup();
         LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void NewMap()
+    {
+        Cleanup();
+        int randomIndex = Random.Range(0, availableMaps.Count);
+        LoadScene(availableMaps[randomIndex]);
+    }
+
+    private void Cleanup()
+    {
+        m_activePlayers.Clear();
+        foreach (var kvp in clientStats)
+        {
+            kvp.Value.roundWinIndicator = null;
+        }
     }
 
     [ClientRpc]
     private void ShowVictoryClientRpc(ulong winningClientId)
     {
-        var localPlayerObject = NetworkManager.Singleton.LocalClient?.PlayerObject;
-        if (localPlayerObject != null)
+        
+        foreach (var kvp in clientStats)
         {
-            FPController controller = localPlayerObject.GetComponent<FPController>();
-            controller?.WinScreen(winningClientId);
+            clientStats[kvp.Key].roundWinIndicator.ShowWinner(clientStats[kvp.Key].roundWins);
         }
+        m_playerUI.RoundWinScreen(winningClientId);
+
     }
 
 

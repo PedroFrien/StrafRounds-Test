@@ -6,6 +6,7 @@ public class PlayerUI : NetworkBehaviour
 {
     private Animator animator;
     [SerializeField] private TMP_Text winnerText;
+    [SerializeField] private bool Paused;
 
     private void Awake()
     {
@@ -16,5 +17,10 @@ public class PlayerUI : NetworkBehaviour
     {
         winnerText.text = "Player " + winningClient + " Wins!";
         animator.SetTrigger("RoundWin");
+    }
+
+    public void Unpause()
+    {
+        FindFirstObjectByType<FPController>().Pause();
     }
 }

@@ -157,9 +157,13 @@ public class FPController : BaseCharacter
     private TMP_Text healthText;
 
     private PlayerUI playerUI;
+    private Animator playerUIAnimator;
 
 
     private bool Paused = false;
+
+    public int currentPoints = 0;
+    public int matchPoints = 0;
 
 
 
@@ -515,6 +519,7 @@ public class FPController : BaseCharacter
         healthText.text = currentHealth.Value.ToString();
 
         playerUI = FindFirstObjectByType<PlayerUI>();
+        playerUIAnimator = playerUI.GetComponent<Animator>();
     }
 
     public void WinScreen(ulong winningClient)
@@ -527,18 +532,19 @@ public class FPController : BaseCharacter
         if (Paused)
         {
             Paused = false;
-            Cursor.lockState = CursorLockMode.None;
+            Cursor.lockState = CursorLockMode.Locked;
             LookEnabled = true;
             MovementEnabled = true;
+            playerUIAnimator.SetBool("Paused", false);
 
         }
         else if (!Paused)
         {
             Paused = true;
-            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.lockState = CursorLockMode.None;
             LookEnabled = false;
             MovementEnabled = false;
-
+            playerUIAnimator.SetBool("Paused", true);
         }
     }
 
