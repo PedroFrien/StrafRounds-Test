@@ -888,7 +888,9 @@ MonoBehaviour:
   m_playerUI: {fileID: 0}
   m_playerPrefab: {fileID: 3408526808338800, guid: 3dabe3b8a21e16e45a6e7ff24e815370, type: 3}
   m_inMatch: 0
-  availableMaps: []
+  availableMaps:
+  - SampleScene
+  - TestMap1
   roundWinIndicator: {fileID: 4460448059090253935, guid: 7e496f4b079eabc419d52f655bac8cca, type: 3}
   uiContainer: {fileID: 0}
 --- !u!114 &1507553578

@@ -45,7 +45,7 @@ public class GameManager : NetworkBehaviour
 
     private Dictionary<ulong, PlayerStats> clientStats = new Dictionary<ulong, PlayerStats>();
 
-    
+
     [SerializeField] private RoundWinIndicator roundWinIndicator;
     [SerializeField] private Transform uiContainer;
 
@@ -246,44 +246,22 @@ public class GameManager : NetworkBehaviour
 
     private IEnumerator ShowVictory(ulong winningClient, bool newMap)
     {
-        ShowVictoryClientRpc(winningClient);
+        ShowVictoryClientRpc(winningClient, clientStats[winningClient].roundWins);
         yield return new WaitForSeconds(3);
         if (newMap)
         {
-            NewMap();
+            ChangeMapClientRPC(true);
         }
         else
         {
-            RestartMap();
-        }
-    }
-
-    public void RestartMap()
-    {
-        Cleanup();
-        LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    public void NewMap()
-    {
-        Cleanup();
-        int randomIndex = Random.Range(0, availableMaps.Count);
-        LoadScene(availableMaps[randomIndex]);
-    }
-
-    private void Cleanup()
-    {
-        m_activePlayers.Clear();
-        foreach (var kvp in clientStats)
-        {
-            kvp.Value.roundWinIndicator = null;
+            ChangeMapClientRPC(false);
         }
     }
 
     [ClientRpc]
-    private void ShowVictoryClientRpc(ulong winningClientId)
+    private void ShowVictoryClientRpc(ulong winningClientId, int clientRoundWins)
     {
-        
+        clientStats[winningClientId].roundWins = clientRoundWins;
         foreach (var kvp in clientStats)
         {
             clientStats[kvp.Key].roundWinIndicator.ShowWinner(clientStats[kvp.Key].roundWins);
@@ -291,6 +269,36 @@ public class GameManager : NetworkBehaviour
         m_playerUI.RoundWinScreen(winningClientId);
 
     }
+
+    [ClientRpc]
+    private void ChangeMapClientRPC(bool newMap)
+    {
+        m_activePlayers.Clear();
+        if (newMap)
+        {
+            int randomIndex = Random.Range(0, availableMaps.Count);
+            LoadScene(availableMaps[randomIndex]);
+            foreach (var kvp in clientStats)
+            {
+                kvp.Value.roundWinIndicator = null;
+                kvp.Value.roundWins = 0;
+            }
+        }
+        else
+        {
+            LoadScene(SceneManager.GetActiveScene().name);
+            foreach (var kvp in clientStats)
+            {
+                kvp.Value.roundWinIndicator = null;
+            }
+        }
+    }
+
+   
+
+
+
+    
 
 
     private void LoadScene(string sceneName)
